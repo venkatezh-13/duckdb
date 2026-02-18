@@ -456,15 +456,25 @@
                     let finalFileName = fileName;
                     let fileLabel = ext.toUpperCase();
 
+                    // For large files (>50MB), warn about decompression
+                    if (isGz && file.size > 50 * 1024 * 1024) {
+                        showToast(`Large file: decompressing ${(file.size/1024/1024).toFixed(1)}MB...`, 'info', 5000);
+                    }
+
                     if (isGz) {
-                        showToast(`Decompressing ${fileName}…`, 'info', 2000);
+                        // Check file size - browser memory limits
+                        const MAX_GZ_SIZE = 200 * 1024 * 1024; // 200MB compressed
+                        if (file.size > MAX_GZ_SIZE) {
+                            showToast(`File too large: ${(file.size/1024/1024).toFixed(0)}MB. Max: 200MB for CSV.GZ. Please decompress first.`, 'error', 8000);
+                            continue;
+                        }
                         try {
                             const decompressed = pako.ungzip(new Uint8Array(arrayBuffer));
                             arrayBuffer = decompressed.buffer;
                             finalFileName = baseName;
                             fileLabel = `${baseExt.toUpperCase()}.GZ`;
-                        } catch {
-                            showToast(`Failed to unzip ${fileName}`, 'error', 5000);
+                        } catch (err) {
+                            showToast(`Failed to unzip ${fileName}: ${err.message}`, 'error', 5000);
                             continue;
                         }
                     }
