@@ -98,6 +98,7 @@
         [data-theme="dark"] .suggestions { background: var(--oat-warm); }
         [data-theme="dark"] .help-content { background: var(--oat-warm); border-color: var(--oat-beige); }
     </style>
+<base target="_blank">
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
@@ -481,7 +482,7 @@
                     await db.registerFileBuffer(finalFileName, new Uint8Array(arrayBuffer));
 
                     let sql = '';
-                    if (['csv','tsv','txt'].includes(baseExt)) sql = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv_auto('${finalFileName}')`;
+                    if (['csv','tsv','txt'].includes(baseExt)) sql = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv_auto('${finalFileName}', header=true)`;
                     else if (baseExt === 'parquet') sql = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_parquet('${finalFileName}')`;
                     else if (['json','jsonl','ndjson'].includes(baseExt)) sql = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_json_auto('${finalFileName}')`;
                     else throw new Error(`Unsupported: ${baseExt}`);
