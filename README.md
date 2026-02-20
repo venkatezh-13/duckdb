@@ -1,180 +1,182 @@
- Here's a README for your DuckDB Oat application:
+# 🗄️ SQL Studio
+
+A fully client-side SQL query tool that runs entirely in the browser — no server, no installation, no data ever leaves your machine.
+
+Built on [sql.js](https://sql-wasm.org/) (SQLite compiled to WebAssembly) with a dark-themed IDE-style interface.
 
 ---
 
-# DuckDB Oat — In-Browser SQL Analytics
+## ✨ Features
 
-A lightweight, elegant web-based SQL editor powered by [DuckDB-Wasm](https://duckdb.org/docs/api/wasm/overview.html). Run queries, explore data, and visualize results entirely in your browser — no backend required.
+### Import
+- **CSV** — auto-detects delimiter, handles quoted fields and multi-line values
+- **CSV.GZ** — decompresses gzip in-browser using the native `DecompressionStream` API, no library needed
+- **TSV** — tab-separated files
+- **JSON** — arrays or objects with an array property
+- **Multi-file** — drop multiple files at once, each becomes its own table
+- **Auto type inference** — samples column values and automatically assigns `INTEGER`, `REAL`, or `TEXT` — no more everything showing as `Utf8`
+- **Handles comma-formatted numbers** — `1,000,000` parsed correctly as an integer
 
----
+### SQL Editor
+- **CodeMirror** editor with SQL syntax highlighting
+- **Autocomplete** — keyword and table/column hints as you type
+- **Multi-tab** — open multiple query tabs simultaneously
+- **Keyboard shortcut** — `Ctrl+Enter` / `Cmd+Enter` to run
+- **Multi-statement** — separate statements with `;`, all execute in sequence
+- **Selection run** — highlight part of a query to run only that portion
+- **Adjustable height** — drag the handle between editor and results
 
-## Features
+### Results
+- **Paginated table** — 200 rows per page, sticky header, sortable columns
+- **Column type display** — shows `INTEGER`, `REAL`, `TEXT`, `DATE` under each header
+- **Row filter** — live filter across all columns with operator support:
+  - Plain text: `NFO`, `NIFTY`
+  - Numeric: `>=100`, `>0`, `<=500`, `<1000`, `=650`, `!=0`
+- **Table / JSON toggle** — switch between tabular and raw JSON view
+- **Export CSV** — downloads current (filtered) result set
+- **Copy as TSV** — copies to clipboard for pasting into Excel / Sheets
 
-| Feature | Description |
-|---------|-------------|
-| **DuckDB-Wasm Engine** | Full SQL analytics engine running locally in your browser |
-| **File Import** | Drag-and-drop or click to import CSV, CSV.GZ, JSON, Parquet, Excel |
-| **Auto-Decompression** | Automatic Gzip decompression for `.csv.gz` files |
-| **Smart Autocomplete** | Context-aware SQL suggestions (keywords, functions, tables, columns) |
-| **Dual Layout** | Toggle between vertical (stacked) and horizontal (side-by-side) layouts |
-| **Resizable Panels** | Drag to adjust editor/results split |
-| **Quick Actions** | Preview, Count, Stats buttons for selected tables |
-| **Export** | Copy results to clipboard or download as CSV |
-| **Dark Mode** | Toggle between light and dark themes |
-| **Persistent Settings** | Layout and theme preferences saved to localStorage |
+### Sidebar
+- **Tables panel** — lists all loaded tables with row counts; refreshes automatically after every import or `DROP`
+- **Schema view** — click any table to expand its column names and types; click a column name to insert it into the editor
+- **Quick actions** — Preview, Schema, Count, Drop per table
+- **Filter tables** — search box to quickly find a table by name
+- **History panel** — last 50 queries with status, row count, and execution time; click to reload into editor
+- **Snippets panel** — one-click SQL templates: value counts, numeric summary, window functions, JOINs, and more
 
----
-
-## Quick Start
-
-1. Open `duckdb_qwen.html` in any modern browser
-2. Wait for "Initializing DuckDB..." to complete
-3. Import data via:
-   - **Drag & drop** files onto the drop zone
-   - **Click Import** button in the header
-4. Select a table from the sidebar to auto-populate queries
-5. Press **Ctrl+Enter** or click **Run** to execute
-
----
-
-## Supported File Formats
-
-| Format | Extension | Notes |
-|--------|-----------|-------|
-| CSV | `.csv` | Auto-detect with `header=true` |
-| Gzipped CSV | `.csv.gz` | Auto-decompress, headers enabled |
-| TSV/TXT | `.tsv`, `.txt` | Tab-delimited support |
-| Parquet | `.parquet` | Columnar format |
-| JSON | `.json`, `.jsonl`, `.ndjson` | Auto-detect schema |
-| Excel | `.xlsx`, `.xls` | Basic support |
+### UX
+- **Resizable sidebar** — drag the divider to adjust width
+- **Status indicator** — live dot shows Ready / Busy / Error state
+- **Toast notifications** — non-blocking feedback for import success, errors
+- **Zero data upload** — everything stays in your browser tab; closing the tab clears all data
 
 ---
 
-## Keyboard Shortcuts
+## 🚀 Usage
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl + Enter` | Execute query |
-| `Tab` | Accept autocomplete suggestion |
-| `↑ / ↓` | Navigate suggestions |
-| `Esc` | Close suggestions / modals |
+### Option A — Open directly
+Download `index.html` and open it in any modern browser. No web server needed.
+
+```bash
+# macOS
+open index.html
+
+# Linux
+xdg-open index.html
+
+# Windows
+start index.html
+```
+
+### Option B — Serve locally
+```bash
+python3 -m http.server 8080
+# then open http://localhost:8080
+```
+
+### Option C — GitHub Pages
+Push to a repo and enable GitHub Pages — it works as a static site with no build step.
 
 ---
 
-## SQL Features
+## 📋 Quick Start
 
-DuckDB Oat supports the full [DuckDB SQL dialect](https://duckdb.org/docs/sql/introduction.html):
+1. Open `index.html` in Chrome, Firefox, or Edge
+2. Drop a CSV, CSV.GZ, TSV, or JSON file onto the sidebar import zone
+3. The file is loaded as a SQLite table — the table name is derived from the filename
+4. A `SELECT * FROM your_table LIMIT 100` query is auto-populated
+5. Press `Ctrl+Enter` to run
 
-- **Standard SQL**: `SELECT`, `WHERE`, `GROUP BY`, `ORDER BY`, `JOIN`
-- **Window Functions**: `ROW_NUMBER()`, `RANK()`, `LAG()`, `LEAD()`
-- **Aggregates**: `COUNT()`, `SUM()`, `AVG()`, `MIN()`, `MAX()`
-- **CTEs**: `WITH` clauses for complex queries
-- **Advanced**: `PIVOT`, `UNPIVOT`, `MACRO`, custom functions
+---
 
-### Example Queries
+## ⚙️ How It Works
 
-```sql
--- Basic select
-SELECT * FROM my_table LIMIT 100;
+| Component | Library | Notes |
+|-----------|---------|-------|
+| SQL engine | [sql.js 1.10](https://github.com/sql-js/sql.js) | SQLite compiled to WASM, runs on main thread |
+| CSV parsing | [PapaParse 5.4](https://www.papaparse.com/) | Streaming, handles edge cases |
+| GZ decompression | Native `DecompressionStream` | No library, built into modern browsers |
+| SQL editor | [CodeMirror 5.65](https://codemirror.net/) | Syntax highlighting + autocomplete |
 
--- Aggregation
-SELECT category, COUNT(*), AVG(price) 
-FROM sales 
-GROUP BY category;
+**No backend. No build tool. No npm. No framework.** A single HTML file with CDN dependencies.
 
--- Window functions
-SELECT *, ROW_NUMBER() OVER (PARTITION BY category ORDER BY price DESC) as rank
-FROM products;
+### Large File Handling
 
--- Table summary
-SUMMARIZE my_table;
+For large files (100MB+), the import pipeline:
+1. Reads raw bytes **eagerly** inside the file-picker event handler before any async work, preventing stale file handle errors
+2. Decompresses `.gz` files in 4MB streaming chunks to avoid memory spikes
+3. Infers column types from 500 evenly-spaced sample rows
+4. Inserts rows in **batched transactions of 5,000 rows**, yielding to the browser between each batch to prevent UI freeze and browser watchdog timeouts
+
+---
+
+## 🔍 Filter Syntax
+
+The result filter box (above the table) supports:
+
+| Input | Behaviour |
+|-------|-----------|
+| `NIFTY` | Substring match across all columns |
+| `=NFO` | Exact string match in any column |
+| `!=MCX` | Exclude rows where any column equals MCX |
+| `>=1000` | Any numeric column ≥ 1000 |
+| `<500` | Any numeric column < 500 |
+| `>0` | Any numeric column greater than zero |
+
+---
+
+## 🌐 Browser Compatibility
+
+| Browser | Support |
+|---------|---------|
+| Chrome 80+ | ✅ Full |
+| Firefox 113+ | ✅ Full |
+| Edge 80+ | ✅ Full |
+| Safari 16.4+ | ✅ Full (`DecompressionStream` required for .gz) |
+| Safari < 16.4 | ⚠️ CSV/JSON work, .gz files not supported |
+
+---
+
+## 📁 File Structure
+
+```
+index.html   ← entire application, single file
+README.md    ← this file
+```
+
+All dependencies are loaded from [cdnjs.cloudflare.com](https://cdnjs.cloudflare.com) at runtime.
+
+---
+
+## 🔒 Privacy
+
+- **No data is ever sent to a server.** All processing happens in your browser tab.
+- **No telemetry, no analytics, no cookies.**
+- Closing or refreshing the tab clears all loaded tables and query history.
+- The tool works fully offline once the page has loaded (CDN assets are cached by the browser).
+
+---
+
+## 📝 Limitations
+
+- Data is **in-memory only** — tables do not persist across page reloads
+- Maximum practical file size depends on available browser RAM (tested up to ~600MB CSV.GZ)
+- SQLite dialect — DuckDB-specific functions (`read_csv_auto`, `SUMMARIZE`, etc.) are not available
+- No support for Parquet files (SQLite has no native Parquet reader)
+
+---
+
+## 🛠️ Development
+
+No build step required. Edit `index.html` directly.
+
+To swap the SQL engine for a newer version of sql.js, update the CDN URL:
+```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
 ```
 
 ---
 
-## Configuration
+## 📄 License
 
-Settings are automatically saved to `localStorage`:
-
-| Setting | Key | Default |
-|---------|-----|---------|
-| Theme | `theme` | `light` |
-| Layout | `layout` | `vertical` |
-| First visit flag | `duckdb_visited` | — |
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────┐
-│  UI Layer (Tailwind CSS + Vanilla JS) │
-├─────────────────────────────────────┤
-│  DuckDB-Wasm (WebAssembly + Worker)   │
-├─────────────────────────────────────┤
-│  File System (In-Memory)              │
-│  - Registered file buffers            │
-│  - Auto-decompression (Pako.js)       │
-└─────────────────────────────────────┘
-```
-
----
-
-## Browser Requirements
-
-- **Chrome/Edge** 90+
-- **Firefox** 90+
-- **Safari** 15+
-- WebAssembly support required
-
----
-
-## Customization
-
-### Changing Default CSV Behavior
-
-The CSV reader defaults to `header=true`. To modify:
-
-```javascript
-// In the file import section, change:
-read_csv_auto('${finalFileName}', header=true)
-// to:
-read_csv_auto('${finalFileName}', header=false)  // No headers
-// or:
-read_csv_auto('${finalFileName}')  // Pure auto-detect
-```
-
-### Adding Custom Completions
-
-Edit the `completions` object in the script section:
-
-```javascript
-completions.keywords.push({ name: 'PIVOT', type: 'keyword', desc: 'Pivot table' });
-```
-
----
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| DuckDB fails to load | Check internet connection (CDN required), refresh page |
-| CSV import fails | Verify file encoding (UTF-8), check delimiter consistency |
-| Large files slow | DuckDB-Wasm has memory limits; consider Parquet for big data |
-| Dark mode not persisting | Clear localStorage, or check browser privacy settings |
-
----
-
-## Credits
-
-- **DuckDB**: [duckdb.org](https://duckdb.org)
-- **DuckDB-Wasm**: [github.com/duckdb/duckdb-wasm](https://github.com/duckdb/duckdb-wasm)
-- **Pako.js**: Gzip decompression
-- **Tailwind CSS**: Styling framework
-- **Font Awesome**: Icons
-
----
-
-## License
-
-MIT — Free for personal and commercial use.
+MIT — do whatever you want with it.
